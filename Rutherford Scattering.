@@ -1,0 +1,72 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Define the Physics Parameters (Scaled for visualization)
+# We are using simplified units so we don't have to deal with 10^-15 meters in the plot
+repulsion = 5.0      # Strength of the Coulomb repulsion (k * q1 * q2 / m)
+v0 = 3.0             # Initial speed of the alpha particles
+
+# 2. Setup the Simulation Time
+dt = 0.01
+t_max = 8.0
+time = np.arange(0, t_max, dt)
+
+plt.figure(figsize=(10, 6))
+
+# 3. Define the "Impact Parameters"
+# This is the vertical starting height of each alpha particle in the beam.
+# We will fire 11 particles, spread evenly from y = -2.5 to y = 2.5.
+impact_parameters = np.linspace(-2.5, 2.5, 11)
+
+# 4. Simulation Loop (Nested)
+# The outer loop fires one particle at a time
+for b in impact_parameters:
+    # Starting coordinates (far to the left)
+    x = -5.0
+    y = b
+    
+    # Starting velocity (moving purely to the right)
+    vx = v0
+    vy = 0.0
+    
+    # Track the trajectory
+    x_vals, y_vals = [], []
+    
+    # The inner loop handles the frame-by-frame physics for the current particle
+    for t in time:
+        x_vals.append(x)
+        y_vals.append(y)
+        
+        # Calculate distance to the gold nucleus (which is fixed at 0,0)
+        r = np.sqrt(x**2 + y**2)
+        
+        # Prevent division by zero for a direct head-on collision
+        if r < 0.1:
+            r = 0.1
+            
+        # Coulomb Repulsion
+        # Notice there is NO negative sign here! Gravity pulls (-), electromagnetism pushes (+)
+        ax = repulsion * x / r**3
+        ay = repulsion * y / r**3
+        
+        # Update state using Semi-Implicit Euler
+        vx = vx + ax * dt
+        vy = vy + ay * dt
+        x = x + vx * dt
+        y = y + vy * dt
+        
+    # Plot this specific particle's path
+    plt.plot(x_vals, y_vals, color='teal', linewidth=1.5, alpha=0.8)
+
+# 5. Visualize the Gold Nucleus
+plt.plot(0, 0, 'yo', markersize=25, markeredgecolor='orange', label='Gold Nucleus (Z=79)')
+
+# Formatting the graph
+plt.title('Nuclear Physics: Rutherford Scattering')
+plt.xlabel('X Position')
+plt.ylabel('Y Position')
+plt.axhline(0, color='black', linewidth=0.5, linestyle='--') # Center aiming line
+plt.axis('equal')
+plt.grid(True, alpha=0.3)
+plt.legend()
+plt.show()
