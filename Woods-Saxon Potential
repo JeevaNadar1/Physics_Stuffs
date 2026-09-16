@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Define Nuclear Parameters (for Gold-197)
+A = 197.0          # Mass number (total protons + neutrons)
+V0 = 50.0          # Depth of the potential well (in MeV - Mega electron-Volts)
+a = 0.5            # "Skin thickness" (how blurry the edge of the nucleus is, in fm)
+r0 = 1.25          # Nuclear radius constant (fm)
+
+# 2. Calculate the specific radius of this nucleus
+# The volume of a nucleus scales with A, so the radius scales with the cube root of A
+R = r0 * (A ** (1.0 / 3.0))
+
+# 3. Create the Spatial Array
+# Measuring from the dead center of the nucleus out to 12 femtometers (10^-15 meters)
+r = np.linspace(0, 12, 200)
+
+# 4. The Woods-Saxon Equation
+# V(r) = -V0 / (1 + exp((r - R) / a))
+V_r = -V0 / (1.0 + np.exp((r - R) / a))
+
+# 5. Visualize the Nuclear Potential Well
+plt.figure(figsize=(10, 5))
+plt.plot(r, V_r, color='purple', linewidth=3, label=f'Woods-Saxon Potential (A={int(A)})')
+
+# Draw a vertical line exactly at the calculated nuclear radius
+plt.axvline(R, color='red', linestyle='--', label=f'Nuclear Surface (R = {R:.2f} fm)')
+
+# Formatting the graph
+plt.title('Nuclear Shell Model: The Woods-Saxon Potential Well')
+plt.xlabel('Distance from Nuclear Center (femtometers, $10^{-15}$m)')
+plt.ylabel('Potential Energy (MeV)')
+plt.axhline(0, color='black', linewidth=1)
+plt.grid(True, alpha=0.3)
+plt.legend()
+plt.show()
