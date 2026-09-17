@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Define the Lennard-Jones Parameters
+# We use standard "LJ units" where mass, sigma, and epsilon are exactly 1.
+epsilon = 1.0   # Depth of the energy well (how strong the bond is)
+sigma = 1.0     # The distance where the potential energy is exactly zero
+m = 1.0         # Mass of the moving atom
+
+# 2. Setup the Simulation Time
+dt = 0.01       # Time step
+t_max = 20.0
+time = np.arange(0, t_max, dt)
+
+# 3. Initial Conditions
+# The perfect resting spot (the bottom of the well) is mathematically at 1.122 * sigma.
+# We will stretch the molecule out to 1.5 to simulate a disturbed chemical bond.
+x = 1.5         
+v = 0.0         
+
+x_positions = []
+
+# 4. Molecular Dynamics Simulation Loop
+for t in time:
+    x_positions.append(x)
+    
+    # Calculate the Lennard-Jones Force
+    # This is the exact mathematical derivative (slope) of the energy equation.
+    # Positive result = pushing away; Negative result = pulling in.
+    force = 24.0 * epsilon / x * (2.0 * (sigma / x)**12 - (sigma / x)**6)
+    
+    # Calculate acceleration (Newton's 2nd Law)
+    a = force / m
+    
+    # Update velocity and position (Semi-Implicit Euler method)
+    v = v + a * dt
+    x = x + v * dt
+
+# 5. Visualize the Molecular Vibration
+plt.figure(figsize=(10, 5))
+plt.plot(time, x_positions, color='crimson', linewidth=2.5, label='Atomic Distance')
+
+# Plot the theoretical equilibrium distance
+equilibrium = 2**(1.0 / 6.0) * sigma
+plt.axhline(equilibrium, color='black', linestyle='--', linewidth=1.5, 
+            label=f'Perfect Bond Length ({equilibrium:.3f})')
+
+# Formatting the graph
+plt.title('Molecular Dynamics: Diatomic Vibration (Lennard-Jones Force)')
+plt.xlabel('Time')
+plt.ylabel('Distance Between Atoms')
+plt.grid(True, alpha=0.4)
+plt.legend(loc='upper right')
+plt.show()
