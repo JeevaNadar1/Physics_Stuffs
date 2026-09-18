@@ -1,0 +1,88 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Define Physics Parameters
+G = 1.0      # Gravitational constant (simplified)
+m1 = 1.0     # Mass of Star 1
+m2 = 1.0     # Mass of Star 2
+m3 = 1.0     # Mass of Star 3
+
+# 2. Setup Simulation Time
+dt = 0.001   # Extremely small time step for stability
+t_max = 15.0
+time = np.arange(0, t_max, dt)
+
+# 3. Initial Conditions (Positions and Velocities)
+# Even a 0.0001 change to any of these numbers will create a completely different graph!
+x1, y1 = 1.0, 0.0
+vx1, vy1 = 0.0, 0.5
+
+x2, y2 = -1.0, 0.0
+vx2, vy2 = 0.0, -0.5
+
+x3, y3 = 0.0, 1.0
+vx3, vy3 = 0.5, 0.0
+
+# Lists to track the trajectories
+path1_x, path1_y = [], []
+path2_x, path2_y = [], []
+path3_x, path3_y = [], []
+
+# 4. The Chaotic Simulation Loop
+for t in time:
+    # Save current positions
+    path1_x.append(x1); path1_y.append(y1)
+    path2_x.append(x2); path2_y.append(y2)
+    path3_x.append(x3); path3_y.append(y3)
+    
+    # Calculate the X and Y distances between every pair of stars
+    dx12, dy12 = x2 - x1, y2 - y1
+    dx13, dy13 = x3 - x1, y3 - y1
+    dx23, dy23 = x3 - x2, y3 - y2
+    
+    # Calculate absolute distances (with a 0.1 "softening" limit to prevent infinite gravity crashes)
+    r12 = max(np.sqrt(dx12**2 + dy12**2), 0.1)
+    r13 = max(np.sqrt(dx13**2 + dy13**2), 0.1)
+    r23 = max(np.sqrt(dx23**2 + dy23**2), 0.1)
+    
+    # Newton's Law of Gravity for Star 1 (Pulled by Star 2 and Star 3)
+    ax1 = G * m2 * dx12 / r12**3 + G * m3 * dx13 / r13**3
+    ay1 = G * m2 * dy12 / r12**3 + G * m3 * dy13 / r13**3
+    
+    # Newton's Law of Gravity for Star 2 (Pulled by Star 1 and Star 3)
+    # Notice we flip the sign on dx12 and dy12 because Star 2 is pulled the OPPOSITE way
+    ax2 = -G * m1 * dx12 / r12**3 + G * m3 * dx23 / r23**3
+    ay2 = -G * m1 * dy12 / r12**3 + G * m3 * dy23 / r23**3
+    
+    # Newton's Law of Gravity for Star 3 (Pulled by Star 1 and Star 2)
+    ax3 = -G * m1 * dx13 / r13**3 - G * m2 * dx23 / r23**3
+    ay3 = -G * m1 * dy13 / r13**3 - G * m2 * dy23 / r23**3
+    
+    # Update all velocities
+    vx1 += ax1 * dt; vy1 += ay1 * dt
+    vx2 += ax2 * dt; vy2 += ay2 * dt
+    vx3 += ax3 * dt; vy3 += ay3 * dt
+    
+    # Update all positions
+    x1 += vx1 * dt; y1 += vy1 * dt
+    x2 += vx2 * dt; y2 += vy2 * dt
+    x3 += vx3 * dt; y3 += vy3 * dt
+
+# 5. Visualize the Chaos
+plt.figure(figsize=(8, 8))
+plt.plot(path1_x, path1_y, color='red', linewidth=1.2, label='Star 1')
+plt.plot(path2_x, path2_y, color='blue', linewidth=1.2, label='Star 2')
+plt.plot(path3_x, path3_y, color='green', linewidth=1.2, label='Star 3')
+
+# Plot the final positions
+plt.plot(x1, y1, 'ro', markersize=8)
+plt.plot(x2, y2, 'bo', markersize=8)
+plt.plot(x3, y3, 'go', markersize=8)
+
+plt.title('The Three-Body Problem (Chaos Theory)')
+plt.xlabel('X Position')
+plt.ylabel('Y Position')
+plt.axis('equal')
+plt.grid(True, alpha=0.3)
+plt.legend()
+plt.show()
