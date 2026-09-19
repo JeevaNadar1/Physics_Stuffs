@@ -1,0 +1,70 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Define the Quantum Grid and Time
+N = 1024                      # Number of spatial grid points
+x = np.linspace(-50, 50, N)   # The physical space (1D)
+dx = x[1] - x[0]              # Distance between grid points
+dt = 0.05                     # Time step
+
+# 2. Build the Potential Barrier (The Solid Wall)
+# We create a wall that is classically impossible to cross.
+# The electron's energy is ~1.1, but the wall's energy is 2.0.
+V = np.zeros(N)
+barrier_start, barrier_end = 5, 8
+V[(x > barrier_start) & (x < barrier_end)] = 2.0
+
+# 3. Create the Electron (Gaussian Wave Packet)
+x0 = -20.0                    # Starting position
+p0 = 1.5                      # Forward momentum
+sigma = 3.0                   # Width of the probability cloud
+
+# The Quantum Wave Function (Psi). 
+# Notice the '1j' - Python natively supports imaginary numbers!
+psi = np.exp(-0.5 * ((x - x0) / sigma)**2) * np.exp(1j * p0 * x)
+
+# Normalize the wave so the total probability of existing equals exactly 100% (1.0)
+psi = psi / np.sqrt(np.sum(np.abs(psi)**2) * dx)
+
+# 4. The "Split-Step" Fourier Setup
+# To calculate quantum movement, we need to mathematically separate Kinetic and Potential energy.
+k = np.fft.fftfreq(N, d=dx) * 2 * np.pi     # Momentum space frequencies
+
+# Pre-calculate the evolution operators
+U_V = np.exp(-1j * V * dt / 2.0)            # Half-step of Potential Energy (Position Space)
+U_K = np.exp(-1j * (k**2 / 2.0) * dt)       # Full-step of Kinetic Energy (Momentum Space)
+
+# 5. The Quantum Simulation Loop
+steps = 600
+for i in range(steps):
+    # Step A: Apply half the potential energy in normal space
+    psi = psi * U_V
+    
+    # Step B: Teleport to momentum space (FFT), apply kinetic energy, and teleport back (IFFT)
+    psi_momentum = np.fft.fft(psi)
+    psi_momentum = psi_momentum * U_K
+    psi = np.fft.ifft(psi_momentum)
+    
+    # Step C: Apply the second half of the potential energy
+    psi = psi * U_V
+
+# 6. Visualize the Quantum Reality
+plt.figure(figsize=(10, 5))
+
+# We plot the Absolute Square of the wave to find the PHYSICAL PROBABILITY
+probability_density = np.abs(psi)**2
+
+plt.plot(x, probability_density, color='cyan', linewidth=2, label='Electron Probability Cloud')
+plt.fill_between(x, 0, V * 0.1, color='gray', alpha=0.5, label='Solid Wall (Potential Barrier)')
+
+# Formatting the graph
+plt.title('Quantum Tunneling: The Time-Dependent Schrödinger Equation')
+plt.xlabel('Position')
+plt.ylabel('Probability Density')
+plt.xlim(-10, 30)
+plt.ylim(0, 0.25)
+plt.axhline(0, color='black', linewidth=1)
+plt.legend(loc='upper right')
+plt.grid(True, alpha=0.3)
+plt.style.use('dark_background') # Looks much cooler for quantum physics!
+plt.show()
